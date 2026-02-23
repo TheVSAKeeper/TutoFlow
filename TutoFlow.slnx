@@ -1,4 +1,9 @@
 <Solution>
+    <Folder Name="/Solution Items/">
+        <File Path=".editorconfig" />
+        <File Path="Directory.Build.props" />
+        <File Path="Directory.Packages.props" />
+    </Folder>
     <Project Path="TutoFlow.ApiService/TutoFlow.ApiService.csproj" />
     <Project Path="TutoFlow.AppHost/TutoFlow.AppHost.csproj" />
     <Project Path="TutoFlow.ServiceDefaults/TutoFlow.ServiceDefaults.csproj" />
