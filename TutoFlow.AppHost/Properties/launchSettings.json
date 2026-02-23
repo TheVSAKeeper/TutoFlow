@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json.schemastore.org/launchsettings.json",
+  "profiles": {
+    "https": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": true,
+      "applicationUrl": "https://tutoflow.dev.localhost:17110;http://tutoflow.dev.localhost:15197",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "DOTNET_ENVIRONMENT": "Development",
+        "ASPIRE_DASHBOARD_OTLP_ENDPOINT_URL": "https://localhost:21064",
+        "ASPIRE_DASHBOARD_MCP_ENDPOINT_URL": "https://localhost:23012",
+        "ASPIRE_RESOURCE_SERVICE_ENDPOINT_URL": "https://localhost:22177"
+      }
+    },
+    "http": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": true,
+      "applicationUrl": "http://tutoflow.dev.localhost:15197",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "DOTNET_ENVIRONMENT": "Development",
+        "ASPIRE_DASHBOARD_OTLP_ENDPOINT_URL": "http://localhost:19185",
+        "ASPIRE_DASHBOARD_MCP_ENDPOINT_URL": "http://localhost:18145",
+        "ASPIRE_RESOURCE_SERVICE_ENDPOINT_URL": "http://localhost:20234"
+      }
+    }
+  }
+}

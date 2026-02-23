@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="TutoFlow.ApiService/TutoFlow.ApiService.csproj" />
+  <Project Path="TutoFlow.AppHost/TutoFlow.AppHost.csproj" />
+  <Project Path="TutoFlow.ServiceDefaults/TutoFlow.ServiceDefaults.csproj" />
+  <Project Path="TutoFlow.Tests/TutoFlow.Tests.csproj" />
+  <Project Path="TutoFlow.Web/TutoFlow.Web.csproj" />
+</Solution>
