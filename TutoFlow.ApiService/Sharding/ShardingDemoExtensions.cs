@@ -12,17 +12,17 @@ internal static class ShardingDemoExtensions
     {
         var shardManager = new ShardManager();
 
-        var shardAlphaConnStr = builder.Configuration.GetConnectionString("shard-alpha");
-        var shardBetaConnStr = builder.Configuration.GetConnectionString("shard-beta");
+        var shardDundukConnStr = builder.Configuration.GetConnectionString("shard-dunduk");
+        var shardFundukConnStr = builder.Configuration.GetConnectionString("shard-funduk");
 
-        if (!string.IsNullOrEmpty(shardAlphaConnStr))
+        if (!string.IsNullOrEmpty(shardDundukConnStr))
         {
-            shardManager.RegisterShard("shard-alpha", shardAlphaConnStr);
+            shardManager.RegisterShard("shard-dunduk", shardDundukConnStr);
         }
 
-        if (!string.IsNullOrEmpty(shardBetaConnStr))
+        if (!string.IsNullOrEmpty(shardFundukConnStr))
         {
-            shardManager.RegisterShard("shard-beta", shardBetaConnStr);
+            shardManager.RegisterShard("shard-funduk", shardFundukConnStr);
         }
 
         builder.Services.AddSingleton(shardManager);

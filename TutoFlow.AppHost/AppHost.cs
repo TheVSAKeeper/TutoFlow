@@ -6,21 +6,21 @@ var builder = DistributedApplication.CreateBuilder(args);
 var postgres = builder.AddPostgres("postgres");
 var mainDb = postgres.AddDatabase("tutoflow-dev");
 
-var shardAlphaPostgres = builder.AddPostgres("postgres-shard-alpha");
-var shardAlpha = shardAlphaPostgres.AddDatabase("shard-alpha");
+var shardDundukPostgres = builder.AddPostgres("postgres-shard-dunduk");
+var shardDunduk = shardDundukPostgres.AddDatabase("shard-dunduk");
 
-var shardBetaPostgres = builder.AddPostgres("postgres-shard-beta");
-var shardBeta = shardBetaPostgres.AddDatabase("shard-beta");
+var shardFundukPostgres = builder.AddPostgres("postgres-shard-funduk");
+var shardFunduk = shardFundukPostgres.AddDatabase("shard-funduk");
 
 var cache = builder.AddRedis("cache");
 
 var apiService = builder.AddProject<TutoFlow_ApiService>("apiservice")
     .WithReference(mainDb)
-    .WithReference(shardAlpha)
-    .WithReference(shardBeta)
+    .WithReference(shardDunduk)
+    .WithReference(shardFunduk)
     .WaitFor(postgres)
-    .WaitFor(shardAlphaPostgres)
-    .WaitFor(shardBetaPostgres)
+    .WaitFor(shardDundukPostgres)
+    .WaitFor(shardFundukPostgres)
     .WithHttpHealthCheck("/health");
 
 builder.AddProject<TutoFlow_Web>("webfrontend")

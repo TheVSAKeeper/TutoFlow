@@ -29,7 +29,7 @@ internal sealed record ShardCenterInfo(int Id, string Name, string? Address, str
 
 internal sealed class ShardManager
 {
-    private static readonly string[] ShardNames = ["shard-alpha", "shard-beta"];
+    private static readonly string[] ShardNames = ["shard-dunduk", "shard-funduk"];
     private readonly Dictionary<string, string> _shardConnectionStrings = new(StringComparer.Ordinal);
 
     public static IReadOnlyList<string> AllShards => ShardNames;
