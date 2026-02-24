@@ -27,6 +27,8 @@ internal sealed record ShardStats(string ShardName, int RowCount, string[] Cente
 
 internal sealed record ShardCenterInfo(int Id, string Name, string? Address, string ShardName);
 
+internal sealed record ShardDataGroup(string ShardName, int RowCount, ShardCenterInfo[] Centers);
+
 internal sealed class ShardManager
 {
     private static readonly string[] ShardNames = ["shard-dunduk", "shard-funduk"];
@@ -90,6 +92,10 @@ internal static class AppLevelShardingDemo
         group.MapGet("/stats", GetStatsAsync)
             .WithName("GetAppLevelStats")
             .WithDescription("Возвращает количество центров на каждом шарде");
+
+        group.MapGet("/data", GetDataAsync)
+            .WithName("GetAppLevelData")
+            .WithDescription("Возвращает центры каждого шарда с полной информацией");
 
         group.MapGet("/query", QueryCenterAsync)
             .WithName("QueryAppLevelCenter")
@@ -171,6 +177,23 @@ internal static class AppLevelShardingDemo
         }
 
         return Results.Ok(new { TotalCenters = stats.Sum(s => s.RowCount), Stats = stats });
+    }
+
+    private static async Task<IResult> GetDataAsync(ShardManager shardManager)
+    {
+        var groups = new List<ShardDataGroup>();
+
+        foreach (var shardName in ShardManager.AllShards)
+        {
+            var ctx = shardManager.CreateContext(shardName);
+            await using var _ = ctx.ConfigureAwait(false);
+            var centers = await ctx.Centers.OrderBy(c => c.Id).ToListAsync().ConfigureAwait(false);
+
+            var infos = centers.Select(c => new ShardCenterInfo(c.Id, c.Name, c.Address, shardName)).ToArray();
+            groups.Add(new(shardName, infos.Length, infos));
+        }
+
+        return Results.Ok(new { TotalCenters = groups.Sum(g => g.RowCount), Shards = groups });
     }
 
     private static async Task<IResult> QueryCenterAsync(ShardManager shardManager, string name)

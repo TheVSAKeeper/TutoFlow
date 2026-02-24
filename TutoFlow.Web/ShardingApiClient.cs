@@ -26,6 +26,11 @@ internal sealed class ShardingApiClient(HttpClient httpClient)
         return httpClient.GetStringAsync(new Uri("/api/sharding/partitioning/stats", UriKind.Relative), ct);
     }
 
+    public Task<string> GetPartitionDataAsync(CancellationToken ct = default)
+    {
+        return httpClient.GetStringAsync(new Uri("/api/sharding/partitioning/data", UriKind.Relative), ct);
+    }
+
     public async Task<string> ResetPartitioningAsync(CancellationToken ct = default)
     {
         var response = await httpClient.DeleteAsync(new Uri("/api/sharding/partitioning/reset", UriKind.Relative), ct).ConfigureAwait(false);
@@ -59,6 +64,11 @@ internal sealed class ShardingApiClient(HttpClient httpClient)
     public Task<string> GetAppLevelStatsAsync(CancellationToken ct = default)
     {
         return httpClient.GetStringAsync(new Uri("/api/sharding/app-level/stats", UriKind.Relative), ct);
+    }
+
+    public Task<string> GetAppLevelDataAsync(CancellationToken ct = default)
+    {
+        return httpClient.GetStringAsync(new Uri("/api/sharding/app-level/data", UriKind.Relative), ct);
     }
 
     public async Task<string> QueryAppLevelCenterAsync(string name, CancellationToken ct = default)
@@ -100,6 +110,11 @@ internal sealed class ShardingApiClient(HttpClient httpClient)
     public Task<string> GetInterceptorStatsAsync(CancellationToken ct = default)
     {
         return httpClient.GetStringAsync(new Uri("/api/sharding/interceptor/stats", UriKind.Relative), ct);
+    }
+
+    public Task<string> GetInterceptorDataAsync(CancellationToken ct = default)
+    {
+        return httpClient.GetStringAsync(new Uri("/api/sharding/interceptor/data", UriKind.Relative), ct);
     }
 
     public async Task<string> QueryInterceptorStudentAsync(int clientProfileId, CancellationToken ct = default)

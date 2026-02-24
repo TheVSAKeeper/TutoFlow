@@ -8,6 +8,10 @@ internal sealed record PartitionStats(string PartitionName, long RowCount);
 
 internal sealed record SeedResult(int InsertedCount, string Message);
 
+internal sealed record PartitionUserInfo(int Id, string Email, string Role, string PartitionName);
+
+internal sealed record PartitionDataGroup(string PartitionName, int RowCount, PartitionUserInfo[] Users);
+
 internal static class NativePartitioningDemo
 {
     private const string PartitionedTable = "users_partitioned";
@@ -32,6 +36,10 @@ internal static class NativePartitioningDemo
         group.MapGet("/stats", GetPartitionStatsAsync)
             .WithName("GetPartitionStats")
             .WithDescription("Возвращает количество строк в каждой партиции");
+
+        group.MapGet("/data", GetPartitionDataAsync)
+            .WithName("GetPartitionData")
+            .WithDescription("Возвращает пользователей каждой партиции с привязкой к партиции");
 
         group.MapDelete("/reset", ResetAsync)
             .WithName("ResetPartitioning")
@@ -198,6 +206,67 @@ internal static class NativePartitioningDemo
 
         var totalCount = exactStats.Sum(s => s.RowCount);
         return Results.Ok(new { TotalRows = totalCount, Stats = exactStats });
+    }
+
+    private static async Task<IResult> GetPartitionDataAsync(ApplicationDbContext db)
+    {
+        var exists = await db.Database.SqlQueryRaw<bool>($"SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = '{PartitionedTable}') AS \"Value\"")
+            .FirstOrDefaultAsync()
+            .ConfigureAwait(false);
+
+        if (!exists)
+        {
+            return Results.Ok(new { TotalRows = 0, Partitions = Array.Empty<PartitionDataGroup>() });
+        }
+
+        var partitions = new Dictionary<string, List<PartitionUserInfo>>(StringComparer.Ordinal);
+
+        for (var i = 0; i < PartitionCount; i++)
+        {
+            partitions[$"{PartitionedTable}_p{i}"] = [];
+        }
+
+        var conn = db.Database.GetDbConnection();
+        await conn.OpenAsync().ConfigureAwait(false);
+
+        var cmd = conn.CreateCommand();
+        await using var _ = cmd.ConfigureAwait(false);
+#pragma warning disable CA2100
+        cmd.CommandText = $"""
+                           SELECT
+                               u.id,
+                               u.email,
+                               u.role::text,
+                               c.relname AS partition_name
+                           FROM {PartitionedTable} u
+                           JOIN pg_class c ON c.oid = u.tableoid
+                           ORDER BY c.relname, u.id
+                           """;
+#pragma warning restore CA2100
+
+        var reader = await cmd.ExecuteReaderAsync().ConfigureAwait(false);
+        await using var _2 = reader.ConfigureAwait(false);
+
+        while (await reader.ReadAsync().ConfigureAwait(false))
+        {
+            var partName = reader.GetString(3);
+            var user = new PartitionUserInfo(reader.GetInt32(0), reader.GetString(1), reader.GetString(2), partName);
+
+            if (!partitions.TryGetValue(partName, out var list))
+            {
+                list = [];
+                partitions[partName] = list;
+            }
+
+            list.Add(user);
+        }
+
+        var groups = partitions
+            .OrderBy(kv => kv.Key, StringComparer.Ordinal)
+            .Select(kv => new PartitionDataGroup(kv.Key, kv.Value.Count, [.. kv.Value]))
+            .ToArray();
+
+        return Results.Ok(new { TotalRows = groups.Sum(g => g.RowCount), Partitions = groups });
     }
 
     private static async Task<IResult> ResetAsync(ApplicationDbContext db)

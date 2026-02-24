@@ -1,6 +1,7 @@
 ﻿#pragma warning disable CA1515
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace TutoFlow.Web.Components.Pages;
 
@@ -12,12 +13,18 @@ public partial class Partitioning
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
     };
 
+    private static readonly JsonSerializerOptions CamelCaseOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+    };
+
     private bool _isLoading;
     private string? _lastResult;
     private string? _errorMessage;
     private int _seedCount = 50;
     private string _addEmail = string.Empty;
     private string _addRole = "client";
+    private PartitionDataResponse? _shardData;
 
     private static string FormatJson(string json)
     {
@@ -57,6 +64,19 @@ public partial class Partitioning
         return ExecuteAsync(() => ShardingApi.ResetPartitioningAsync());
     }
 
+    private async Task LoadShardDataAsync()
+    {
+        try
+        {
+            var raw = await ShardingApi.GetPartitionDataAsync().ConfigureAwait(false);
+            _shardData = JsonSerializer.Deserialize<PartitionDataResponse>(raw, CamelCaseOptions);
+        }
+        catch (HttpRequestException)
+        {
+            _shardData = null;
+        }
+    }
+
     private async Task ExecuteAsync(Func<Task<string>> action)
     {
         _isLoading = true;
@@ -67,6 +87,7 @@ public partial class Partitioning
         {
             var raw = await action().ConfigureAwait(false);
             _lastResult = FormatJson(raw);
+            await LoadShardDataAsync().ConfigureAwait(false);
         }
         catch (HttpRequestException ex)
         {
@@ -76,5 +97,41 @@ public partial class Partitioning
         {
             _isLoading = false;
         }
+    }
+
+    private sealed class PartitionDataResponse
+    {
+        [JsonPropertyName("totalRows")]
+        public int TotalRows { get; set; }
+
+        [JsonPropertyName("partitions")]
+        public List<PartitionGroup> Partitions { get; set; } = [];
+    }
+
+    private sealed class PartitionGroup
+    {
+        [JsonPropertyName("partitionName")]
+        public string PartitionName { get; } = string.Empty;
+
+        [JsonPropertyName("rowCount")]
+        public int RowCount { get; set; }
+
+        [JsonPropertyName("users")]
+        public List<PartitionUser> Users { get; } = [];
+    }
+
+    private sealed class PartitionUser
+    {
+        [JsonPropertyName("id")]
+        public int Id { get; set; }
+
+        [JsonPropertyName("email")]
+        public string Email { get; } = string.Empty;
+
+        [JsonPropertyName("role")]
+        public string Role { get; } = string.Empty;
+
+        [JsonPropertyName("partitionName")]
+        public string PartitionName { get; set; } = string.Empty;
     }
 }

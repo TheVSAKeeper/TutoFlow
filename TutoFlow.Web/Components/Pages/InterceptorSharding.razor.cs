@@ -1,6 +1,7 @@
 ﻿#pragma warning disable CA1515
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace TutoFlow.Web.Components.Pages;
 
@@ -12,6 +13,11 @@ public partial class InterceptorSharding
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
     };
 
+    private static readonly JsonSerializerOptions CamelCaseOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+    };
+
     private bool _isLoading;
     private string? _lastResult;
     private string? _errorMessage;
@@ -20,6 +26,7 @@ public partial class InterceptorSharding
     private string _addFullName = string.Empty;
     private int _addClientProfileId = 1;
     private short _addGrade = 5;
+    private SchemaDataResponse? _shardData;
 
     private static string FormatJson(string json)
     {
@@ -64,6 +71,19 @@ public partial class InterceptorSharding
         return ExecuteAsync(() => ShardingApi.ResetInterceptorAsync());
     }
 
+    private async Task LoadShardDataAsync()
+    {
+        try
+        {
+            var raw = await ShardingApi.GetInterceptorDataAsync().ConfigureAwait(false);
+            _shardData = JsonSerializer.Deserialize<SchemaDataResponse>(raw, CamelCaseOptions);
+        }
+        catch (HttpRequestException)
+        {
+            _shardData = null;
+        }
+    }
+
     private async Task ExecuteAsync(Func<Task<string>> action)
     {
         _isLoading = true;
@@ -74,6 +94,7 @@ public partial class InterceptorSharding
         {
             var raw = await action().ConfigureAwait(false);
             _lastResult = FormatJson(raw);
+            await LoadShardDataAsync().ConfigureAwait(false);
         }
         catch (HttpRequestException ex)
         {
@@ -83,5 +104,44 @@ public partial class InterceptorSharding
         {
             _isLoading = false;
         }
+    }
+
+    private sealed class SchemaDataResponse
+    {
+        [JsonPropertyName("totalStudents")]
+        public int TotalStudents { get; set; }
+
+        [JsonPropertyName("schemas")]
+        public List<SchemaGroup> Schemas { get; set; } = [];
+    }
+
+    private sealed class SchemaGroup
+    {
+        [JsonPropertyName("schemaName")]
+        public string SchemaName { get; } = string.Empty;
+
+        [JsonPropertyName("rowCount")]
+        public int RowCount { get; set; }
+
+        [JsonPropertyName("students")]
+        public List<StudentInfo> Students { get; } = [];
+    }
+
+    private sealed class StudentInfo
+    {
+        [JsonPropertyName("id")]
+        public int Id { get; set; }
+
+        [JsonPropertyName("fullName")]
+        public string FullName { get; } = string.Empty;
+
+        [JsonPropertyName("grade")]
+        public short? Grade { get; set; }
+
+        [JsonPropertyName("clientProfileId")]
+        public int ClientProfileId { get; set; }
+
+        [JsonPropertyName("schemaName")]
+        public string SchemaName { get; set; } = string.Empty;
     }
 }

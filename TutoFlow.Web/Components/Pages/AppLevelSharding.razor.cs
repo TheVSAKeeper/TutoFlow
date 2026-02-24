@@ -1,6 +1,7 @@
 ﻿#pragma warning disable CA1515
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace TutoFlow.Web.Components.Pages;
 
@@ -12,6 +13,11 @@ public partial class AppLevelSharding
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
     };
 
+    private static readonly JsonSerializerOptions CamelCaseOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+    };
+
     private bool _isLoading;
     private string? _lastResult;
     private string? _errorMessage;
@@ -19,6 +25,7 @@ public partial class AppLevelSharding
     private string _queryCenterName = string.Empty;
     private string _addName = string.Empty;
     private string _addAddress = string.Empty;
+    private ShardDataResponse? _shardData;
 
     private static string FormatJson(string json)
     {
@@ -63,6 +70,19 @@ public partial class AppLevelSharding
         return ExecuteAsync(() => ShardingApi.ResetAppLevelAsync());
     }
 
+    private async Task LoadShardDataAsync()
+    {
+        try
+        {
+            var raw = await ShardingApi.GetAppLevelDataAsync().ConfigureAwait(false);
+            _shardData = JsonSerializer.Deserialize<ShardDataResponse>(raw, CamelCaseOptions);
+        }
+        catch (HttpRequestException)
+        {
+            _shardData = null;
+        }
+    }
+
     private async Task ExecuteAsync(Func<Task<string>> action)
     {
         _isLoading = true;
@@ -73,6 +93,7 @@ public partial class AppLevelSharding
         {
             var raw = await action().ConfigureAwait(false);
             _lastResult = FormatJson(raw);
+            await LoadShardDataAsync().ConfigureAwait(false);
         }
         catch (HttpRequestException ex)
         {
@@ -82,5 +103,41 @@ public partial class AppLevelSharding
         {
             _isLoading = false;
         }
+    }
+
+    private sealed class ShardDataResponse
+    {
+        [JsonPropertyName("totalCenters")]
+        public int TotalCenters { get; set; }
+
+        [JsonPropertyName("shards")]
+        public List<ShardGroup> Shards { get; set; } = [];
+    }
+
+    private sealed class ShardGroup
+    {
+        [JsonPropertyName("shardName")]
+        public string ShardName { get; } = string.Empty;
+
+        [JsonPropertyName("rowCount")]
+        public int RowCount { get; set; }
+
+        [JsonPropertyName("centers")]
+        public List<CenterInfo> Centers { get; } = [];
+    }
+
+    private sealed class CenterInfo
+    {
+        [JsonPropertyName("id")]
+        public int Id { get; set; }
+
+        [JsonPropertyName("name")]
+        public string Name { get; } = string.Empty;
+
+        [JsonPropertyName("address")]
+        public string? Address { get; set; }
+
+        [JsonPropertyName("shardName")]
+        public string ShardName { get; set; } = string.Empty;
     }
 }

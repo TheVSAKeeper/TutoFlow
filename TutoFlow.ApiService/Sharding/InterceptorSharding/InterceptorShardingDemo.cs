@@ -140,6 +140,8 @@ internal sealed record SchemaShardStats(string SchemaName, int RowCount, string[
 
 internal sealed record ShardStudentInfo(int Id, string FullName, short? Grade, int ClientProfileId, string SchemaName);
 
+internal sealed record SchemaDataGroup(string SchemaName, int RowCount, ShardStudentInfo[] Students);
+
 internal static class InterceptorShardingDemo
 {
     public static void MapInterceptorShardingEndpoints(this WebApplication app)
@@ -161,6 +163,10 @@ internal static class InterceptorShardingDemo
         group.MapGet("/stats", GetStatsAsync)
             .WithName("GetInterceptorStats")
             .WithDescription("Возвращает количество строк в каждой схеме");
+
+        group.MapGet("/data", GetDataAsync)
+            .WithName("GetInterceptorData")
+            .WithDescription("Возвращает студентов каждой схемы с полной информацией");
 
         group.MapGet("/query", QueryStudentAsync)
             .WithName("QueryInterceptorStudent")
@@ -287,6 +293,41 @@ internal static class InterceptorShardingDemo
         }
 
         return Results.Ok(new { TotalStudents = stats.Sum(s => s.RowCount), Stats = stats });
+    }
+
+    private static async Task<IResult> GetDataAsync(ApplicationDbContext db)
+    {
+        var groups = new List<SchemaDataGroup>();
+
+        foreach (var schema in ShardContext.AllShards)
+        {
+            var schemaExists = await db.Database.SqlQueryRaw<bool>($"SELECT EXISTS (SELECT 1 FROM information_schema.schemata WHERE schema_name = '{schema}') AS \"Value\"")
+                .FirstOrDefaultAsync()
+                .ConfigureAwait(false);
+
+            if (!schemaExists)
+            {
+                groups.Add(new(schema, 0, []));
+                continue;
+            }
+
+            var students = await db.Database.SqlQueryRaw<ShardStudentInfo>($"""
+                                                                            SELECT
+                                                                                id AS "Id",
+                                                                                full_name AS "FullName",
+                                                                                grade::smallint AS "Grade",
+                                                                                client_profile_id AS "ClientProfileId",
+                                                                                '{schema}' AS "SchemaName"
+                                                                            FROM {schema}.students
+                                                                            ORDER BY id
+                                                                            """)
+                .ToArrayAsync()
+                .ConfigureAwait(false);
+
+            groups.Add(new(schema, students.Length, students));
+        }
+
+        return Results.Ok(new { TotalStudents = groups.Sum(g => g.RowCount), Schemas = groups });
     }
 
     private static async Task<IResult> QueryStudentAsync(InterceptorShardingDbContext db, int clientProfileId)
