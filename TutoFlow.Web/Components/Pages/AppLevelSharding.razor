@@ -1,0 +1,72 @@
+@page "/sharding/app-level"
+@rendermode InteractiveServer
+
+@inject ShardingApiClient ShardingApi
+
+<PageTitle>Application-Level Sharding</PageTitle>
+
+<h1>Demo 2: Application-Level Sharding</h1>
+
+<p>
+    Демонстрация шардинга на уровне приложения.
+    Два отдельных экземпляра PostgreSQL (<code>shard-alpha</code>, <code>shard-beta</code>).
+    <code>ShardManager</code> маршрутизирует центры по чётности ID: чётные → alpha, нечётные → beta.
+</p>
+
+<div class="mb-3">
+    <div class="btn-group" role="group">
+        <button class="btn btn-primary" @onclick="InitAsync" disabled="@_isLoading">
+            🏗️ Инициализировать шарды
+        </button>
+        <button class="btn btn-success" @onclick="SeedAsync" disabled="@_isLoading">
+            🌱 Создать центры (@_seedCount шт.)
+        </button>
+        <button class="btn btn-info" @onclick="GetStatsAsync" disabled="@_isLoading">
+            📊 Статистика
+        </button>
+        <button class="btn btn-danger" @onclick="ResetAsync" disabled="@_isLoading">
+            🗑️ Очистить
+        </button>
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col-auto">
+        <label for="seedCount" class="form-label">Количество центров:</label>
+        <input id="seedCount" type="number" class="form-control" style="max-width: 200px" @bind="_seedCount" min="1"
+               max="100" />
+    </div>
+    <div class="col-auto">
+        <label for="queryId" class="form-label">ID центра для поиска:</label>
+        <div class="input-group" style="max-width: 300px">
+            <input id="queryId" type="number" class="form-control" @bind="_queryCenterId" min="1" />
+            <button class="btn btn-outline-primary" @onclick="QueryCenterAsync" disabled="@_isLoading">
+                🔍 Найти
+            </button>
+        </div>
+    </div>
+</div>
+
+@if (_isLoading)
+{
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Загрузка...</span>
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(_lastResult))
+{
+    <div class="card mt-3">
+        <div class="card-header">
+            <strong>Результат</strong>
+        </div>
+        <div class="card-body">
+            <pre class="mb-0" style="white-space: pre-wrap; max-height: 500px; overflow-y: auto;">@_lastResult</pre>
+        </div>
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(_errorMessage))
+{
+    <div class="alert alert-danger mt-3">@_errorMessage</div>
+}

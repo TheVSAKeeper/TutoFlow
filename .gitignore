@@ -401,3 +401,4 @@ FodyWeavers.xsd
 
 # MoneyProject
 */appsettings.Development.json
+.vscode

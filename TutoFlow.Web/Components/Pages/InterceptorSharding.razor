@@ -1,0 +1,73 @@
+@page "/sharding/interceptor"
+@rendermode InteractiveServer
+
+@inject ShardingApiClient ShardingApi
+
+<PageTitle>EF Core Interceptor Sharding</PageTitle>
+
+<h1>Demo 3: EF Core Interceptor-Based Sharding</h1>
+
+<p>
+    Демонстрация шардинга через <code>DbCommandInterceptor</code>.
+    Две схемы (<code>shard_a</code>, <code>shard_b</code>) в одной БД.
+    Interceptor подменяет имя схемы в SQL-командах на основе <code>AsyncLocal&lt;string&gt;</code>.
+    Маршрутизация по <code>client_profile_id</code>: чётные → shard_a, нечётные → shard_b.
+</p>
+
+<div class="mb-3">
+    <div class="btn-group" role="group">
+        <button class="btn btn-primary" @onclick="InitAsync" disabled="@_isLoading">
+            🏗️ Создать схемы
+        </button>
+        <button class="btn btn-success" @onclick="SeedAsync" disabled="@_isLoading">
+            🌱 Добавить студентов (@_seedCount шт.)
+        </button>
+        <button class="btn btn-info" @onclick="GetStatsAsync" disabled="@_isLoading">
+            📊 Статистика
+        </button>
+        <button class="btn btn-danger" @onclick="ResetAsync" disabled="@_isLoading">
+            🗑️ Удалить схемы
+        </button>
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col-auto">
+        <label for="seedCount" class="form-label">Количество студентов:</label>
+        <input id="seedCount" type="number" class="form-control" style="max-width: 200px" @bind="_seedCount" min="1"
+               max="200" />
+    </div>
+    <div class="col-auto">
+        <label for="queryId" class="form-label">client_profile_id для поиска:</label>
+        <div class="input-group" style="max-width: 300px">
+            <input id="queryId" type="number" class="form-control" @bind="_queryClientProfileId" min="1" />
+            <button class="btn btn-outline-primary" @onclick="QueryStudentAsync" disabled="@_isLoading">
+                🔍 Найти
+            </button>
+        </div>
+    </div>
+</div>
+
+@if (_isLoading)
+{
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Загрузка...</span>
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(_lastResult))
+{
+    <div class="card mt-3">
+        <div class="card-header">
+            <strong>Результат</strong>
+        </div>
+        <div class="card-body">
+            <pre class="mb-0" style="white-space: pre-wrap; max-height: 500px; overflow-y: auto;">@_lastResult</pre>
+        </div>
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(_errorMessage))
+{
+    <div class="alert alert-danger mt-3">@_errorMessage</div>
+}

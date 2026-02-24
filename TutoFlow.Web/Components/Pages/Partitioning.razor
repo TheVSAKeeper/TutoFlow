@@ -1,0 +1,61 @@
+@page "/sharding/partitioning"
+@rendermode InteractiveServer
+
+@inject ShardingApiClient ShardingApi
+
+<PageTitle>PostgreSQL Партицирование</PageTitle>
+
+<h1>Demo 1: PostgreSQL Native Partitioning</h1>
+
+<p>
+    Демонстрация нативного hash-партицирования PostgreSQL.
+    Таблица <code>users_partitioned</code> разбита на 4 партиции по <code>HASH(id)</code>.
+    PostgreSQL автоматически маршрутизирует <code>INSERT</code>/<code>SELECT</code> в нужную партицию.
+</p>
+
+<div class="mb-3">
+    <div class="btn-group" role="group">
+        <button class="btn btn-primary" @onclick="InitAsync" disabled="@_isLoading">
+            🏗️ Инициализировать партиции
+        </button>
+        <button class="btn btn-success" @onclick="SeedAsync" disabled="@_isLoading">
+            🌱 Заполнить данными (@_seedCount шт.)
+        </button>
+        <button class="btn btn-info" @onclick="GetStatsAsync" disabled="@_isLoading">
+            📊 Статистика
+        </button>
+        <button class="btn btn-danger" @onclick="ResetAsync" disabled="@_isLoading">
+            🗑️ Удалить
+        </button>
+    </div>
+</div>
+
+<div class="mb-3">
+    <label for="seedCount" class="form-label">Количество записей:</label>
+    <input id="seedCount" type="number" class="form-control" style="max-width: 200px" @bind="_seedCount" min="1"
+           max="500" />
+</div>
+
+@if (_isLoading)
+{
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Загрузка...</span>
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(_lastResult))
+{
+    <div class="card mt-3">
+        <div class="card-header">
+            <strong>Результат</strong>
+        </div>
+        <div class="card-body">
+            <pre class="mb-0" style="white-space: pre-wrap; max-height: 500px; overflow-y: auto;">@_lastResult</pre>
+        </div>
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(_errorMessage))
+{
+    <div class="alert alert-danger mt-3">@_errorMessage</div>
+}

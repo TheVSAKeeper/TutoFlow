@@ -1,5 +1,6 @@
 using TutoFlow.ApiService;
 using TutoFlow.ApiService.Data;
+using TutoFlow.ApiService.Sharding;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -7,6 +8,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.AddServiceDefaults();
 
 builder.AddNpgsqlDbContext<ApplicationDbContext>("tutoflow-dev");
+
+builder.AddShardingDemos();
 
 // Add services to the container.
 builder.Services.AddProblemDetails();
@@ -41,6 +44,8 @@ app.MapGet("/weatherforecast", () =>
         return forecast;
     })
     .WithName("GetWeatherForecast");
+
+app.MapShardingDemos();
 
 app.MapDefaultEndpoints();
 
