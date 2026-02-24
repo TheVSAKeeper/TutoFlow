@@ -1,3 +1,4 @@
+#pragma warning disable MA0048, MA0051
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using TutoFlow.ApiService.Data.Enums;
@@ -7,7 +8,7 @@ namespace TutoFlow.ApiService.Data.Models;
 /// <summary>
 /// Профиль администратора центра.
 /// </summary>
-public class AdminProfile
+internal sealed class AdminProfile
 {
     /// <summary>Уникальный идентификатор.</summary>
     public int Id { get; set; }
@@ -40,16 +41,17 @@ public class AdminProfile
     public Center Center { get; set; } = null!;
 
     /// <summary>Записи о членстве, одобренные данным администратором.</summary>
-    public ICollection<CenterMembership> ApprovedMemberships { get; set; } = [];
+    public ICollection<CenterMembership> ApprovedMemberships { get; } = [];
 }
 
 /// <summary>
 /// Конфигурация сущности <see cref="AdminProfile" /> для EF Core.
 /// </summary>
-public class AdminProfileConfiguration : IEntityTypeConfiguration<AdminProfile>
+internal sealed class AdminProfileConfiguration : IEntityTypeConfiguration<AdminProfile>
 {
     public void Configure(EntityTypeBuilder<AdminProfile> builder)
     {
+        ArgumentNullException.ThrowIfNull(builder);
         builder.ToTable("admin_profiles");
 
         builder.HasKey(e => e.Id);

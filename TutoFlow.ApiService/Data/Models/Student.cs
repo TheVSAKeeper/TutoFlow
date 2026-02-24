@@ -1,3 +1,4 @@
+#pragma warning disable MA0048, MA0051
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -6,7 +7,7 @@ namespace TutoFlow.ApiService.Data.Models;
 /// <summary>
 /// Ученик, привязанный к клиенту.
 /// </summary>
-public class Student
+internal sealed class Student
 {
     /// <summary>Уникальный идентификатор.</summary>
     public int Id { get; set; }
@@ -42,10 +43,11 @@ public class Student
 /// <summary>
 /// Конфигурация сущности <see cref="Student" /> для EF Core.
 /// </summary>
-public class StudentConfiguration : IEntityTypeConfiguration<Student>
+internal sealed class StudentConfiguration : IEntityTypeConfiguration<Student>
 {
     public void Configure(EntityTypeBuilder<Student> builder)
     {
+        ArgumentNullException.ThrowIfNull(builder);
         builder.ToTable("students", t =>
         {
             t.HasCheckConstraint("chk_students_grade", "grade BETWEEN 1 AND 12");

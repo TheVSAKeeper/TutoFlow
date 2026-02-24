@@ -3,7 +3,7 @@ namespace TutoFlow.ApiService.Data.Enums;
 /// <summary>
 /// Роль пользователя в системе.
 /// </summary>
-public enum UserRole
+internal enum UserRole
 {
     /// <summary>Не определена.</summary>
     None = 0,

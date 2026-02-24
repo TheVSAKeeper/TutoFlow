@@ -3,7 +3,7 @@ namespace TutoFlow.ApiService.Data.Enums;
 /// <summary>
 /// Уровень прав администратора центра.
 /// </summary>
-public enum PermissionsLevel
+internal enum PermissionsLevel
 {
     /// <summary>Не определён.</summary>
     None = 0,

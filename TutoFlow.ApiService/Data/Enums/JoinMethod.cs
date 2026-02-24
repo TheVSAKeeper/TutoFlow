@@ -3,7 +3,7 @@ namespace TutoFlow.ApiService.Data.Enums;
 /// <summary>
 /// Способ присоединения репетитора к центру.
 /// </summary>
-public enum JoinMethod
+internal enum JoinMethod
 {
     /// <summary>Не определён.</summary>
     None = 0,

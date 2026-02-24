@@ -1,3 +1,4 @@
+#pragma warning disable MA0048, MA0051
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -6,7 +7,7 @@ namespace TutoFlow.ApiService.Data.Models;
 /// <summary>
 /// Репетиторский центр.
 /// </summary>
-public class Center
+internal sealed class Center
 {
     /// <summary>Уникальный идентификатор.</summary>
     public int Id { get; set; }
@@ -39,19 +40,20 @@ public class Center
     public bool IsVerified { get; set; }
 
     /// <summary>Профили администраторов центра.</summary>
-    public ICollection<AdminProfile> AdminProfiles { get; set; } = [];
+    public ICollection<AdminProfile> AdminProfiles { get; } = [];
 
     /// <summary>Записи о членстве репетиторов.</summary>
-    public ICollection<CenterMembership> Memberships { get; set; } = [];
+    public ICollection<CenterMembership> Memberships { get; } = [];
 }
 
 /// <summary>
 /// Конфигурация сущности <see cref="Center" /> для EF Core.
 /// </summary>
-public class CenterConfiguration : IEntityTypeConfiguration<Center>
+internal sealed class CenterConfiguration : IEntityTypeConfiguration<Center>
 {
     public void Configure(EntityTypeBuilder<Center> builder)
     {
+        ArgumentNullException.ThrowIfNull(builder);
         builder.ToTable("centers", t =>
         {
             t.HasCheckConstraint("chk_centers_inn", "inn ~ '^\\d{10,12}$'");

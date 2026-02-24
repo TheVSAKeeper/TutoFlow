@@ -1,3 +1,4 @@
+#pragma warning disable MA0048, MA0051
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using TutoFlow.ApiService.Data.Enums;
@@ -7,7 +8,7 @@ namespace TutoFlow.ApiService.Data.Models;
 /// <summary>
 /// Членство репетитора в центре (история участия).
 /// </summary>
-public class CenterMembership
+internal sealed class CenterMembership
 {
     /// <summary>Уникальный идентификатор.</summary>
     public int Id { get; set; }
@@ -58,10 +59,11 @@ public class CenterMembership
 /// <summary>
 /// Конфигурация сущности <see cref="CenterMembership" /> для EF Core.
 /// </summary>
-public class CenterMembershipConfiguration : IEntityTypeConfiguration<CenterMembership>
+internal sealed class CenterMembershipConfiguration : IEntityTypeConfiguration<CenterMembership>
 {
     public void Configure(EntityTypeBuilder<CenterMembership> builder)
     {
+        ArgumentNullException.ThrowIfNull(builder);
         builder.ToTable("center_membership");
 
         builder.HasKey(e => e.Id);

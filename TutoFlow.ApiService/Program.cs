@@ -1,3 +1,4 @@
+using TutoFlow.ApiService;
 using TutoFlow.ApiService.Data;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -29,22 +30,18 @@ app.MapGet("/", () => "API service is running. Navigate to /weatherforecast to s
 
 app.MapGet("/weatherforecast", () =>
     {
+#pragma warning disable CA5394
         var forecast = Enumerable.Range(1, 5)
             .Select(index =>
                 new WeatherForecast(DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
                     Random.Shared.Next(-20, 55),
                     summaries[Random.Shared.Next(summaries.Length)]))
             .ToArray();
-
+#pragma warning restore CA5394
         return forecast;
     })
     .WithName("GetWeatherForecast");
 
 app.MapDefaultEndpoints();
 
-app.Run();
-
-internal record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
+await app.RunAsync().ConfigureAwait(false);

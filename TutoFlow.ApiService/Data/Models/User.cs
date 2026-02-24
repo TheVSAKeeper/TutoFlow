@@ -1,3 +1,4 @@
+#pragma warning disable MA0048, MA0051
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using TutoFlow.ApiService.Data.Enums;
@@ -7,7 +8,7 @@ namespace TutoFlow.ApiService.Data.Models;
 /// <summary>
 /// Учётная запись пользователя.
 /// </summary>
-public class User
+internal sealed class User
 {
     /// <summary>Уникальный идентификатор.</summary>
     public int Id { get; set; }
@@ -49,10 +50,12 @@ public class User
 /// <summary>
 /// Конфигурация сущности <see cref="User" /> для EF Core.
 /// </summary>
-public class UserConfiguration : IEntityTypeConfiguration<User>
+internal sealed class UserConfiguration : IEntityTypeConfiguration<User>
 {
     public void Configure(EntityTypeBuilder<User> builder)
     {
+        ArgumentNullException.ThrowIfNull(builder);
+
         builder.ToTable("users");
 
         builder.HasKey(e => e.Id);

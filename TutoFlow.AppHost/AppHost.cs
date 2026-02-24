@@ -1,3 +1,4 @@
+#pragma warning disable MA0048
 var builder = DistributedApplication.CreateBuilder(args);
 
 var postgres = builder.AddPostgres("postgres")
@@ -18,4 +19,4 @@ builder.AddProject<Projects.TutoFlow_Web>("webfrontend")
     .WithReference(apiService)
     .WaitFor(apiService);
 
-builder.Build().Run();
+await builder.Build().RunAsync().ConfigureAwait(false);

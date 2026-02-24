@@ -3,7 +3,7 @@ namespace TutoFlow.ApiService.Data.Enums;
 /// <summary>
 /// Модель работы репетитора.
 /// </summary>
-public enum WorkModel
+internal enum WorkModel
 {
     /// <summary>Не определена.</summary>
     None = 0,

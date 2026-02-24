@@ -1,3 +1,4 @@
+#pragma warning disable MA0048, MA0051
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using TutoFlow.ApiService.Data.Enums;
@@ -7,7 +8,7 @@ namespace TutoFlow.ApiService.Data.Models;
 /// <summary>
 /// Профиль репетитора.
 /// </summary>
-public class TutorProfile
+internal sealed class TutorProfile
 {
     /// <summary>Уникальный идентификатор.</summary>
     public int Id { get; set; }
@@ -49,16 +50,18 @@ public class TutorProfile
     public User User { get; set; } = null!;
 
     /// <summary>Записи о членстве в центрах.</summary>
-    public ICollection<CenterMembership> Memberships { get; set; } = [];
+    public ICollection<CenterMembership> Memberships { get; } = [];
 }
 
 /// <summary>
 /// Конфигурация сущности <see cref="TutorProfile" /> для EF Core.
 /// </summary>
-public class TutorProfileConfiguration : IEntityTypeConfiguration<TutorProfile>
+internal sealed class TutorProfileConfiguration : IEntityTypeConfiguration<TutorProfile>
 {
     public void Configure(EntityTypeBuilder<TutorProfile> builder)
     {
+        ArgumentNullException.ThrowIfNull(builder);
+
         builder.ToTable("tutor_profiles", t =>
         {
             t.HasCheckConstraint("chk_tutor_hourly_rate", "hourly_rate > 0");

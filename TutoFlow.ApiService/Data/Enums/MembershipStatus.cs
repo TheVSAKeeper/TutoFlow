@@ -3,7 +3,7 @@ namespace TutoFlow.ApiService.Data.Enums;
 /// <summary>
 /// Статус членства репетитора в центре.
 /// </summary>
-public enum MembershipStatus
+internal enum MembershipStatus
 {
     /// <summary>Не определён.</summary>
     None = 0,

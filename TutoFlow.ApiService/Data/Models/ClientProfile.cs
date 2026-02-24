@@ -1,3 +1,4 @@
+#pragma warning disable MA0048, MA0051
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -6,7 +7,7 @@ namespace TutoFlow.ApiService.Data.Models;
 /// <summary>
 /// Профиль клиента (родитель или взрослый ученик).
 /// </summary>
-public class ClientProfile
+internal sealed class ClientProfile
 {
     /// <summary>Уникальный идентификатор.</summary>
     public int Id { get; set; }
@@ -33,16 +34,17 @@ public class ClientProfile
     public User User { get; set; } = null!;
 
     /// <summary>Ученики, привязанные к клиенту.</summary>
-    public ICollection<Student> Students { get; set; } = [];
+    public ICollection<Student> Students { get; } = [];
 }
 
 /// <summary>
 /// Конфигурация сущности <see cref="ClientProfile" /> для EF Core.
 /// </summary>
-public class ClientProfileConfiguration : IEntityTypeConfiguration<ClientProfile>
+internal sealed class ClientProfileConfiguration : IEntityTypeConfiguration<ClientProfile>
 {
     public void Configure(EntityTypeBuilder<ClientProfile> builder)
     {
+        ArgumentNullException.ThrowIfNull(builder);
         builder.ToTable("client_profiles");
 
         builder.HasKey(e => e.Id);

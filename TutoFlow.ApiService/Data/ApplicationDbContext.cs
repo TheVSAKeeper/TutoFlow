@@ -3,7 +3,7 @@ using TutoFlow.ApiService.Data.Models;
 
 namespace TutoFlow.ApiService.Data;
 
-public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : DbContext(options)
+internal sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : DbContext(options)
 {
     public DbSet<User> Users => Set<User>();
 
@@ -21,6 +21,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        ArgumentNullException.ThrowIfNull(modelBuilder);
         modelBuilder.HasPostgresEnum<Enums.UserRole>(name: "user_role");
         modelBuilder.HasPostgresEnum<Enums.WorkModel>(name: "work_model");
         modelBuilder.HasPostgresEnum<Enums.PermissionsLevel>(name: "permissions_level");
