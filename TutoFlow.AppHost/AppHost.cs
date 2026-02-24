@@ -5,8 +5,12 @@ var builder = DistributedApplication.CreateBuilder(args);
 
 var postgres = builder.AddPostgres("postgres");
 var mainDb = postgres.AddDatabase("tutoflow-dev");
-var shardAlpha = postgres.AddDatabase("shard-alpha");
-var shardBeta = postgres.AddDatabase("shard-beta");
+
+var shardAlphaPostgres = builder.AddPostgres("postgres-shard-alpha");
+var shardAlpha = shardAlphaPostgres.AddDatabase("shard-alpha");
+
+var shardBetaPostgres = builder.AddPostgres("postgres-shard-beta");
+var shardBeta = shardBetaPostgres.AddDatabase("shard-beta");
 
 var cache = builder.AddRedis("cache");
 
@@ -15,6 +19,8 @@ var apiService = builder.AddProject<TutoFlow_ApiService>("apiservice")
     .WithReference(shardAlpha)
     .WithReference(shardBeta)
     .WaitFor(postgres)
+    .WaitFor(shardAlphaPostgres)
+    .WaitFor(shardBetaPostgres)
     .WithHttpHealthCheck("/health");
 
 builder.AddProject<TutoFlow_Web>("webfrontend")

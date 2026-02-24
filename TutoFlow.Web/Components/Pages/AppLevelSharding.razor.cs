@@ -1,4 +1,5 @@
-﻿using System.Text.Encodings.Web;
+﻿#pragma warning disable CA1515
+using System.Text.Encodings.Web;
 using System.Text.Json;
 
 namespace TutoFlow.Web.Components.Pages;
@@ -15,16 +16,18 @@ public partial class AppLevelSharding
     private string? _lastResult;
     private string? _errorMessage;
     private int _seedCount = 20;
-    private int _queryCenterId = 1;
+    private string _queryCenterName = string.Empty;
+    private string _addName = string.Empty;
+    private string _addAddress = string.Empty;
 
     private static string FormatJson(string json)
     {
         try
         {
-            var doc = JsonDocument.Parse(json);
+            using var doc = JsonDocument.Parse(json);
             return JsonSerializer.Serialize(doc, IndentedJsonOptions);
         }
-        catch
+        catch (JsonException)
         {
             return json;
         }
@@ -40,6 +43,11 @@ public partial class AppLevelSharding
         return ExecuteAsync(() => ShardingApi.SeedAppLevelAsync(_seedCount));
     }
 
+    private Task AddCenterAsync()
+    {
+        return ExecuteAsync(() => ShardingApi.AddAppLevelCenterAsync(_addName, _addAddress));
+    }
+
     private Task GetStatsAsync()
     {
         return ExecuteAsync(() => ShardingApi.GetAppLevelStatsAsync());
@@ -47,7 +55,7 @@ public partial class AppLevelSharding
 
     private Task QueryCenterAsync()
     {
-        return ExecuteAsync(() => ShardingApi.QueryAppLevelCenterAsync(_queryCenterId));
+        return ExecuteAsync(() => ShardingApi.QueryAppLevelCenterAsync(_queryCenterName));
     }
 
     private Task ResetAsync()
@@ -63,10 +71,10 @@ public partial class AppLevelSharding
 
         try
         {
-            var raw = await action();
+            var raw = await action().ConfigureAwait(false);
             _lastResult = FormatJson(raw);
         }
-        catch (Exception ex)
+        catch (HttpRequestException ex)
         {
             _errorMessage = ex.Message;
         }

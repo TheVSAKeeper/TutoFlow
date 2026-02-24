@@ -154,6 +154,10 @@ internal static class InterceptorShardingDemo
             .WithName("SeedInterceptorSharding")
             .WithDescription("Заполняет студентами, маршрутизируя по client_profile_id");
 
+        group.MapPost("/add", AddStudentAsync)
+            .WithName("AddInterceptorStudent")
+            .WithDescription("Добавляет одного студента с маршрутизацией по client_profile_id");
+
         group.MapGet("/stats", GetStatsAsync)
             .WithName("GetInterceptorStats")
             .WithDescription("Возвращает количество строк в каждой схеме");
@@ -195,6 +199,26 @@ internal static class InterceptorShardingDemo
             Message = "Схемы и таблицы инициализированы",
             Schemas = ShardContext.AllShards,
         });
+    }
+
+    private static async Task<IResult> AddStudentAsync(InterceptorShardingDbContext db, string fullName, int clientProfileId, short? grade = null)
+    {
+        var shard = ShardContext.Resolve(clientProfileId);
+        ShardContext.Current = shard;
+
+        var student = new Student
+        {
+            FullName = fullName,
+            Grade = grade,
+            ClientProfileId = clientProfileId,
+        };
+
+        db.Students.Add(student);
+        await db.SaveChangesAsync().ConfigureAwait(false);
+
+        ShardContext.Current = null;
+
+        return Results.Ok(new ShardStudentInfo(student.Id, student.FullName, student.Grade, student.ClientProfileId, shard));
     }
 
     private static async Task<IResult> SeedAsync(InterceptorShardingDbContext db, int count = 30)

@@ -1,4 +1,5 @@
-﻿using System.Text.Encodings.Web;
+﻿#pragma warning disable CA1515
+using System.Text.Encodings.Web;
 using System.Text.Json;
 
 namespace TutoFlow.Web.Components.Pages;
@@ -16,15 +17,18 @@ public partial class InterceptorSharding
     private string? _errorMessage;
     private int _seedCount = 30;
     private int _queryClientProfileId = 1;
+    private string _addFullName = string.Empty;
+    private int _addClientProfileId = 1;
+    private short _addGrade = 5;
 
     private static string FormatJson(string json)
     {
         try
         {
-            var doc = JsonDocument.Parse(json);
+            using var doc = JsonDocument.Parse(json);
             return JsonSerializer.Serialize(doc, IndentedJsonOptions);
         }
-        catch
+        catch (JsonException)
         {
             return json;
         }
@@ -38,6 +42,11 @@ public partial class InterceptorSharding
     private Task SeedAsync()
     {
         return ExecuteAsync(() => ShardingApi.SeedInterceptorAsync(_seedCount));
+    }
+
+    private Task AddStudentAsync()
+    {
+        return ExecuteAsync(() => ShardingApi.AddInterceptorStudentAsync(_addFullName, _addClientProfileId, _addGrade));
     }
 
     private Task GetStatsAsync()
@@ -63,10 +72,10 @@ public partial class InterceptorSharding
 
         try
         {
-            var raw = await action();
+            var raw = await action().ConfigureAwait(false);
             _lastResult = FormatJson(raw);
         }
-        catch (Exception ex)
+        catch (HttpRequestException ex)
         {
             _errorMessage = ex.Message;
         }

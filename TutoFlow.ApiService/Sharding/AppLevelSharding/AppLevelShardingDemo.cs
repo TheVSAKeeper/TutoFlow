@@ -34,9 +34,10 @@ internal sealed class ShardManager
 
     public static IReadOnlyList<string> AllShards => ShardNames;
 
-    public static string ResolveShardName(int centerId)
+    public static string ResolveShardName(string name)
     {
-        return centerId % 2 == 0 ? ShardNames[0] : ShardNames[1];
+        var hash = (uint)name.GetHashCode(StringComparison.Ordinal);
+        return ShardNames[hash % 2];
     }
 
     public void RegisterShard(string shardName, string connectionString)
@@ -80,7 +81,11 @@ internal static class AppLevelShardingDemo
 
         group.MapPost("/seed", SeedAsync)
             .WithName("SeedAppLevelSharding")
-            .WithDescription("Создаёт demo-центры, маршрутизируя по ID на разные шарды");
+            .WithDescription("Создаёт demo-центры, маршрутизируя по hash(name) на разные шарды");
+
+        group.MapPost("/add", AddCenterAsync)
+            .WithName("AddAppLevelCenter")
+            .WithDescription("Добавляет один центр — шард определяется по hash(name)");
 
         group.MapGet("/stats", GetStatsAsync)
             .WithName("GetAppLevelStats")
@@ -88,7 +93,7 @@ internal static class AppLevelShardingDemo
 
         group.MapGet("/query", QueryCenterAsync)
             .WithName("QueryAppLevelCenter")
-            .WithDescription("Находит центр по ID на нужном шарде");
+            .WithDescription("Находит центр по имени на нужном шарде");
 
         group.MapDelete("/reset", ResetAsync)
             .WithName("ResetAppLevelSharding")
@@ -112,13 +117,14 @@ internal static class AppLevelShardingDemo
 
         for (var i = 1; i <= count; i++)
         {
-            var shardName = ShardManager.ResolveShardName(i);
+            var centerName = $"Центр «{GetCenterName(i)}» #{i}";
+            var shardName = ShardManager.ResolveShardName(centerName);
             var ctx = shardManager.CreateContext(shardName);
             await using var _1 = ctx.ConfigureAwait(false);
 
             var center = new Center
             {
-                Name = $"Центр «{GetCenterName(i)}» #{i}",
+                Name = centerName,
                 Address = $"г. Москва, ул. Примерная, д. {i}",
                 Phone = $"+7-495-{i:D3}-{i * 17 % 1000:D3}-{i * 31 % 100:D2}",
                 Email = $"center{i}@tutoflow.ru",
@@ -131,6 +137,24 @@ internal static class AppLevelShardingDemo
         }
 
         return Results.Ok(new { InsertedCount = created.Count, Centers = created });
+    }
+
+    private static async Task<IResult> AddCenterAsync(ShardManager shardManager, string name, string? address = null)
+    {
+        var shardName = ShardManager.ResolveShardName(name);
+        var ctx = shardManager.CreateContext(shardName);
+        await using var _ = ctx.ConfigureAwait(false);
+
+        var center = new Center
+        {
+            Name = name,
+            Address = address,
+        };
+
+        ctx.Centers.Add(center);
+        await ctx.SaveChangesAsync().ConfigureAwait(false);
+
+        return Results.Ok(new ShardCenterInfo(center.Id, center.Name, center.Address, shardName));
     }
 
     private static async Task<IResult> GetStatsAsync(ShardManager shardManager)
@@ -149,17 +173,17 @@ internal static class AppLevelShardingDemo
         return Results.Ok(new { TotalCenters = stats.Sum(s => s.RowCount), Stats = stats });
     }
 
-    private static async Task<IResult> QueryCenterAsync(ShardManager shardManager, int centerId)
+    private static async Task<IResult> QueryCenterAsync(ShardManager shardManager, string name)
     {
-        var shardName = ShardManager.ResolveShardName(centerId);
+        var shardName = ShardManager.ResolveShardName(name);
         var ctx = shardManager.CreateContext(shardName);
         await using var _ = ctx.ConfigureAwait(false);
 
-        var center = await ctx.Centers.FindAsync(centerId).ConfigureAwait(false);
+        var center = await ctx.Centers.FirstOrDefaultAsync(c => c.Name == name).ConfigureAwait(false);
 
         if (center is null)
         {
-            return Results.NotFound(new { Message = $"Центр {centerId} не найден на шарде {shardName}" });
+            return Results.NotFound(new { Message = $"Центр «{name}» не найден на шарде {shardName}" });
         }
 
         return Results.Ok(new ShardCenterInfo(center.Id, center.Name, center.Address, shardName));

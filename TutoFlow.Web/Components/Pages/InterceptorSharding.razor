@@ -48,6 +48,39 @@
     </div>
 </div>
 
+<div class="card mb-3">
+    <div class="card-header">
+        <strong>➕ Добавить студента вручную</strong>
+    </div>
+    <div class="card-body">
+        <div class="row g-2 align-items-end">
+            <div class="col-auto">
+                <label for="addName" class="form-label">ФИО:</label>
+                <input id="addName" type="text" class="form-control" style="max-width: 250px"
+                       @bind="_addFullName" placeholder="Иванов Иван" />
+            </div>
+            <div class="col-auto">
+                <label for="addClientProfileId" class="form-label">client_profile_id:</label>
+                <input id="addClientProfileId" type="number" class="form-control" style="max-width: 150px"
+                       @bind="_addClientProfileId" min="1" />
+            </div>
+            <div class="col-auto">
+                <label for="addGrade" class="form-label">Класс (1-12):</label>
+                <input id="addGrade" type="number" class="form-control" style="max-width: 120px"
+                       @bind="_addGrade" min="1" max="12" />
+            </div>
+            <div class="col-auto">
+                <button class="btn btn-outline-success" @onclick="AddStudentAsync" disabled="@_isLoading">
+                    ➕ Добавить
+                </button>
+            </div>
+        </div>
+        <small class="text-muted mt-1 d-block">
+            Шард определяется по client_profile_id: чётные → shard_a, нечётные → shard_b
+        </small>
+    </div>
+</div>
+
 @if (_isLoading)
 {
     <div class="spinner-border text-primary" role="status">

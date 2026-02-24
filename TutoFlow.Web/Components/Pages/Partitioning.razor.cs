@@ -1,4 +1,5 @@
-﻿using System.Text.Encodings.Web;
+﻿#pragma warning disable CA1515
+using System.Text.Encodings.Web;
 using System.Text.Json;
 
 namespace TutoFlow.Web.Components.Pages;
@@ -15,15 +16,17 @@ public partial class Partitioning
     private string? _lastResult;
     private string? _errorMessage;
     private int _seedCount = 50;
+    private string _addEmail = string.Empty;
+    private string _addRole = "client";
 
     private static string FormatJson(string json)
     {
         try
         {
-            var doc = JsonDocument.Parse(json);
+            using var doc = JsonDocument.Parse(json);
             return JsonSerializer.Serialize(doc, IndentedJsonOptions);
         }
-        catch
+        catch (JsonException)
         {
             return json;
         }
@@ -37,6 +40,11 @@ public partial class Partitioning
     private Task SeedAsync()
     {
         return ExecuteAsync(() => ShardingApi.SeedPartitioningAsync(_seedCount));
+    }
+
+    private Task AddUserAsync()
+    {
+        return ExecuteAsync(() => ShardingApi.AddPartitionedUserAsync(_addEmail, _addRole));
     }
 
     private Task GetStatsAsync()
@@ -57,10 +65,10 @@ public partial class Partitioning
 
         try
         {
-            var raw = await action();
+            var raw = await action().ConfigureAwait(false);
             _lastResult = FormatJson(raw);
         }
-        catch (Exception ex)
+        catch (HttpRequestException ex)
         {
             _errorMessage = ex.Message;
         }

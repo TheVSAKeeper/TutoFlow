@@ -15,6 +15,12 @@ internal sealed class ShardingApiClient(HttpClient httpClient)
         return await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
     }
 
+    public async Task<string> AddPartitionedUserAsync(string email, string role, CancellationToken ct = default)
+    {
+        var response = await httpClient.PostAsync(new Uri($"/api/sharding/partitioning/add?email={Uri.EscapeDataString(email)}&role={Uri.EscapeDataString(role)}", UriKind.Relative), null, ct).ConfigureAwait(false);
+        return await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
+    }
+
     public Task<string> GetPartitionStatsAsync(CancellationToken ct = default)
     {
         return httpClient.GetStringAsync(new Uri("/api/sharding/partitioning/stats", UriKind.Relative), ct);
@@ -38,14 +44,26 @@ internal sealed class ShardingApiClient(HttpClient httpClient)
         return await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
     }
 
+    public async Task<string> AddAppLevelCenterAsync(string name, string? address, CancellationToken ct = default)
+    {
+        var uri = $"/api/sharding/app-level/add?name={Uri.EscapeDataString(name)}";
+        if (!string.IsNullOrEmpty(address))
+        {
+            uri += $"&address={Uri.EscapeDataString(address)}";
+        }
+
+        var response = await httpClient.PostAsync(new Uri(uri, UriKind.Relative), null, ct).ConfigureAwait(false);
+        return await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
+    }
+
     public Task<string> GetAppLevelStatsAsync(CancellationToken ct = default)
     {
         return httpClient.GetStringAsync(new Uri("/api/sharding/app-level/stats", UriKind.Relative), ct);
     }
 
-    public async Task<string> QueryAppLevelCenterAsync(int centerId, CancellationToken ct = default)
+    public async Task<string> QueryAppLevelCenterAsync(string name, CancellationToken ct = default)
     {
-        var response = await httpClient.GetAsync(new Uri($"/api/sharding/app-level/query?centerId={centerId}", UriKind.Relative), ct).ConfigureAwait(false);
+        var response = await httpClient.GetAsync(new Uri($"/api/sharding/app-level/query?name={Uri.EscapeDataString(name)}", UriKind.Relative), ct).ConfigureAwait(false);
         return await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
     }
 
@@ -64,6 +82,18 @@ internal sealed class ShardingApiClient(HttpClient httpClient)
     public async Task<string> SeedInterceptorAsync(int count = 30, CancellationToken ct = default)
     {
         var response = await httpClient.PostAsync(new Uri($"/api/sharding/interceptor/seed?count={count}", UriKind.Relative), null, ct).ConfigureAwait(false);
+        return await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
+    }
+
+    public async Task<string> AddInterceptorStudentAsync(string fullName, int clientProfileId, short? grade, CancellationToken ct = default)
+    {
+        var uri = $"/api/sharding/interceptor/add?fullName={Uri.EscapeDataString(fullName)}&clientProfileId={clientProfileId}";
+        if (grade.HasValue)
+        {
+            uri += $"&grade={grade.Value}";
+        }
+
+        var response = await httpClient.PostAsync(new Uri(uri, UriKind.Relative), null, ct).ConfigureAwait(false);
         return await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
     }
 

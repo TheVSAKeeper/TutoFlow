@@ -36,6 +36,35 @@
            max="500" />
 </div>
 
+<div class="card mb-3">
+    <div class="card-header">
+        <strong>➕ Добавить пользователя вручную</strong>
+    </div>
+    <div class="card-body">
+        <div class="row g-2 align-items-end">
+            <div class="col-auto">
+                <label for="addEmail" class="form-label">Email:</label>
+                <input id="addEmail" type="email" class="form-control" style="max-width: 300px"
+                       @bind="_addEmail" placeholder="user@example.com" />
+            </div>
+            <div class="col-auto">
+                <label for="addRole" class="form-label">Роль:</label>
+                <select id="addRole" class="form-select" style="max-width: 200px" @bind="_addRole">
+                    <option value="client">client</option>
+                    <option value="tutor">tutor</option>
+                    <option value="admin">admin</option>
+                    <option value="super_admin">super_admin</option>
+                </select>
+            </div>
+            <div class="col-auto">
+                <button class="btn btn-outline-success" @onclick="AddUserAsync" disabled="@_isLoading">
+                    ➕ Добавить
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @if (_isLoading)
 {
     <div class="spinner-border text-primary" role="status">

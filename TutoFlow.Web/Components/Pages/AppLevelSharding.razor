@@ -10,8 +10,9 @@
 <p>
     Демонстрация шардинга на уровне приложения.
     Два отдельных экземпляра PostgreSQL (<code>shard-alpha</code>, <code>shard-beta</code>).
-    <code>ShardManager</code> маршрутизирует центры по чётности ID: чётные → alpha, нечётные → beta.
+    <code>ShardManager</code> маршрутизирует центры по хешу имени: <code>hash(name) % 2</code>.
 </p>
+
 
 <div class="mb-3">
     <div class="btn-group" role="group">
@@ -37,12 +38,38 @@
                max="100" />
     </div>
     <div class="col-auto">
-        <label for="queryId" class="form-label">ID центра для поиска:</label>
-        <div class="input-group" style="max-width: 300px">
-            <input id="queryId" type="number" class="form-control" @bind="_queryCenterId" min="1" />
+        <label for="queryName" class="form-label">Имя центра для поиска:</label>
+        <div class="input-group" style="max-width: 400px">
+            <input id="queryName" type="text" class="form-control" @bind="_queryCenterName"
+                   placeholder="Центр «Эрудит» #1" />
             <button class="btn btn-outline-primary" @onclick="QueryCenterAsync" disabled="@_isLoading">
                 🔍 Найти
             </button>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-header">
+        <strong>➕ Добавить центр вручную</strong>
+    </div>
+    <div class="card-body">
+        <div class="row g-2 align-items-end">
+            <div class="col-auto">
+                <label for="addName" class="form-label">Название:</label>
+                <input id="addName" type="text" class="form-control" style="max-width: 300px"
+                       @bind="_addName" placeholder="Центр «Эрудит»" />
+            </div>
+            <div class="col-auto">
+                <label for="addAddress" class="form-label">Адрес:</label>
+                <input id="addAddress" type="text" class="form-control" style="max-width: 300px"
+                       @bind="_addAddress" placeholder="г. Москва, ул. Примерная" />
+            </div>
+            <div class="col-auto">
+                <button class="btn btn-outline-success" @onclick="AddCenterAsync" disabled="@_isLoading">
+                    ➕ Добавить
+                </button>
+            </div>
         </div>
     </div>
 </div>

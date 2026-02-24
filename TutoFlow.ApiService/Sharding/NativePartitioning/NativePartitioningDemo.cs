@@ -25,6 +25,10 @@ internal static class NativePartitioningDemo
             .WithName("SeedPartitionedUsers")
             .WithDescription("Заполняет партицированную таблицу demo-данными");
 
+        group.MapPost("/add", AddUserAsync)
+            .WithName("AddPartitionedUser")
+            .WithDescription("Добавляет одного пользователя с указанным email и ролью");
+
         group.MapGet("/stats", GetPartitionStatsAsync)
             .WithName("GetPartitionStats")
             .WithDescription("Возвращает количество строк в каждой партиции");
@@ -119,6 +123,39 @@ internal static class NativePartitioningDemo
         }
 
         return Results.Ok(new SeedResult(count, $"Добавлено {count} пользователей в партицированную таблицу"));
+    }
+
+    private static async Task<IResult> AddUserAsync(ApplicationDbContext db, string email, string role = "client")
+    {
+        var exists = await db.Database.SqlQueryRaw<bool>($"SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = '{PartitionedTable}') AS \"Value\"")
+            .FirstOrDefaultAsync()
+            .ConfigureAwait(false);
+
+        if (!exists)
+        {
+            return Results.BadRequest(new { Message = "Сначала инициализируйте партиции через /init" });
+        }
+
+        var sql = $"""
+                   INSERT INTO {PartitionedTable} (email, password_hash, role)
+                   VALUES (
+                       '{email}',
+                       'hash_{Guid.NewGuid():N}',
+                       '{role}'::user_role
+                   )
+                   RETURNING id
+                   """;
+
+        var conn = db.Database.GetDbConnection();
+        await conn.OpenAsync().ConfigureAwait(false);
+        var cmd = conn.CreateCommand();
+        await using var _ = cmd.ConfigureAwait(false);
+#pragma warning disable CA2100
+        cmd.CommandText = sql;
+#pragma warning restore CA2100
+        var id = (int)(await cmd.ExecuteScalarAsync().ConfigureAwait(false))!;
+
+        return Results.Ok(new { Id = id, Email = email, Role = role, Message = $"Пользователь добавлен (id={id}), PostgreSQL автоматически определил партицию" });
     }
 
     private static async Task<IResult> GetPartitionStatsAsync(ApplicationDbContext db)
