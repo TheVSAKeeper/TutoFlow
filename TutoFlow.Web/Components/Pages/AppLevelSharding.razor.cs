@@ -1,4 +1,4 @@
-﻿#pragma warning disable CA1515
+﻿#pragma warning disable CA1515, CA5394
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -26,6 +26,22 @@ public partial class AppLevelSharding
     private string _addName = string.Empty;
     private string _addAddress = string.Empty;
     private ShardDataResponse? _shardData;
+
+    private static readonly Random Rng = new();
+
+    private static readonly string[] CenterNames =
+        ["Эрудит", "Прогресс", "Олимп", "Гармония", "Интеллект", "Перспектива", "Академия", "Горизонт", "Успех", "Знание"];
+
+    private static readonly string[] Streets =
+        ["ул. Ленина", "пр. Мира", "ул. Гагарина", "ул. Пушкина", "пр. Победы", "ул. Советская", "ул. Кирова"];
+
+    private void FillRandomCenter()
+    {
+        var name = CenterNames[Rng.Next(CenterNames.Length)];
+        var num = Rng.Next(1, 100);
+        _addName = $"Центр «{name}» #{num}";
+        _addAddress = $"г. Москва, {Streets[Rng.Next(Streets.Length)]}, д. {Rng.Next(1, 200)}";
+    }
 
     private static string FormatJson(string json)
     {

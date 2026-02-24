@@ -1,4 +1,4 @@
-﻿#pragma warning disable CA1515
+﻿#pragma warning disable CA1515, CA5394
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -25,6 +25,15 @@ public partial class Partitioning
     private string _addEmail = string.Empty;
     private string _addRole = "client";
     private PartitionDataResponse? _shardData;
+
+    private static readonly Random Rng = new();
+    private static readonly string[] Roles = ["client", "tutor", "admin", "super_admin"];
+
+    private void FillRandomUser()
+    {
+        _addEmail = $"user_{Guid.NewGuid().ToString("N")[..8]}@demo.tutoflow.ru";
+        _addRole = Roles[Rng.Next(Roles.Length)];
+    }
 
     private static string FormatJson(string json)
     {

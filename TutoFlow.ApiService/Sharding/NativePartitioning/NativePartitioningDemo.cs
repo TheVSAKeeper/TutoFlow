@@ -121,7 +121,7 @@ internal static class NativePartitioningDemo
             var sql = $"""
                        INSERT INTO {PartitionedTable} (email, password_hash, role)
                        VALUES (
-                           'user_{Guid.NewGuid():N}@demo.tutoflow.ru',
+                           'user_{Guid.NewGuid().ToString("N")[..8]}@demo.tutoflow.ru',
                            'hash_{Guid.NewGuid():N}',
                            '{role}'::user_role
                        );

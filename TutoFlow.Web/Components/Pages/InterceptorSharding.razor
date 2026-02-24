@@ -74,11 +74,11 @@
                 <button class="btn btn-outline-success" @onclick="AddStudentAsync" disabled="@_isLoading">
                     ➕ Добавить
                 </button>
+                <button class="btn btn-outline-secondary" @onclick="FillRandomStudent" disabled="@_isLoading">
+                    🎲 Случайные
+                </button>
             </div>
         </div>
-        <small class="text-muted mt-1 d-block">
-            Шард определяется по client_profile_id: чётные → shard_a, нечётные → shard_b
-        </small>
     </div>
 </div>
 
@@ -153,7 +153,7 @@
                                                         @if (student.Grade.HasValue)
                                                         {
                                                             <span
-                                                                class="badge bg-outline-secondary border">@student.Grade</span>
+                                                                class="badge text-dark bg-light border">@student.Grade</span>
                                                         }
                                                         else
                                                         {

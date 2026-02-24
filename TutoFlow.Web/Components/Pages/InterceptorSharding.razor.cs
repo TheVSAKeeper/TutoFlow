@@ -1,4 +1,4 @@
-﻿#pragma warning disable CA1515
+﻿#pragma warning disable CA1515, CA5394
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -27,6 +27,22 @@ public partial class InterceptorSharding
     private int _addClientProfileId = 1;
     private short _addGrade = 5;
     private SchemaDataResponse? _shardData;
+
+    private static readonly Random Rng = new();
+
+    private static readonly string[] StudentNames =
+    [
+        "Иванов Иван", "Петрова Мария", "Сидоров Алексей", "Козлова Анна",
+        "Михайлов Дмитрий", "Новикова Елена", "Фёдоров Сергей", "Морозова Ольга",
+        "Волков Артём", "Лебедева Дарья",
+    ];
+
+    private void FillRandomStudent()
+    {
+        _addFullName = StudentNames[Rng.Next(StudentNames.Length)];
+        _addClientProfileId = Rng.Next(1, 200);
+        _addGrade = (short)Rng.Next(1, 12);
+    }
 
     private static string FormatJson(string json)
     {
