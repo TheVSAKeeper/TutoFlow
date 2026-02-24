@@ -133,13 +133,13 @@ public partial class AppLevelSharding
     private sealed class ShardGroup
     {
         [JsonPropertyName("shardName")]
-        public string ShardName { get; } = string.Empty;
+        public string ShardName { get; set; } = string.Empty;
 
         [JsonPropertyName("rowCount")]
         public int RowCount { get; set; }
 
         [JsonPropertyName("centers")]
-        public List<CenterInfo> Centers { get; } = [];
+        public List<CenterInfo> Centers { get; set; } = [];
     }
 
     private sealed class CenterInfo
@@ -148,7 +148,7 @@ public partial class AppLevelSharding
         public int Id { get; set; }
 
         [JsonPropertyName("name")]
-        public string Name { get; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
 
         [JsonPropertyName("address")]
         public string? Address { get; set; }

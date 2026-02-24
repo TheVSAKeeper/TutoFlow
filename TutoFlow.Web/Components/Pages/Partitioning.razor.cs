@@ -120,13 +120,13 @@ public partial class Partitioning
     private sealed class PartitionGroup
     {
         [JsonPropertyName("partitionName")]
-        public string PartitionName { get; } = string.Empty;
+        public string PartitionName { get; set; } = string.Empty;
 
         [JsonPropertyName("rowCount")]
         public int RowCount { get; set; }
 
         [JsonPropertyName("users")]
-        public List<PartitionUser> Users { get; } = [];
+        public List<PartitionUser> Users { get; set; } = [];
     }
 
     private sealed class PartitionUser
@@ -135,10 +135,10 @@ public partial class Partitioning
         public int Id { get; set; }
 
         [JsonPropertyName("email")]
-        public string Email { get; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
 
         [JsonPropertyName("role")]
-        public string Role { get; } = string.Empty;
+        public string Role { get; set; } = string.Empty;
 
         [JsonPropertyName("partitionName")]
         public string PartitionName { get; set; } = string.Empty;

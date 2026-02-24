@@ -134,13 +134,13 @@ public partial class InterceptorSharding
     private sealed class SchemaGroup
     {
         [JsonPropertyName("schemaName")]
-        public string SchemaName { get; } = string.Empty;
+        public string SchemaName { get; set; } = string.Empty;
 
         [JsonPropertyName("rowCount")]
         public int RowCount { get; set; }
 
         [JsonPropertyName("students")]
-        public List<StudentInfo> Students { get; } = [];
+        public List<StudentInfo> Students { get; set; } = [];
     }
 
     private sealed class StudentInfo
@@ -149,7 +149,7 @@ public partial class InterceptorSharding
         public int Id { get; set; }
 
         [JsonPropertyName("fullName")]
-        public string FullName { get; } = string.Empty;
+        public string FullName { get; set; } = string.Empty;
 
         [JsonPropertyName("grade")]
         public short? Grade { get; set; }
